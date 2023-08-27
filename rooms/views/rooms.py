@@ -13,6 +13,7 @@ from drf_yasg.utils import swagger_auto_schema
 from rooms.serializers import (
     RoomDetailSerializer,
     RoomListSerializer,
+    AmenitySerializer,
 )
 from rooms.models import Amenity, Room
 from reviews.serializers import ReviewSerializer
@@ -150,6 +151,39 @@ class RoomReviews(APIView):
         end = start + page_size
         room = Room.get_object(pk)
         serializer = ReviewSerializer(
+            room.reviews.all()[start:end],
+            many=True,
+        )
+        return Response(serializer.data)
+
+
+class RoomAmenities(APIView):
+
+    @swagger_auto_schema(
+        operation_description="Room에 해당하는 Amenities Get",
+        manual_parameters=[
+            openapi.Parameter(
+                "page",
+                openapi.IN_QUERY,
+                description="페이지 번호",
+                type=openapi.TYPE_INTEGER,
+                required=False,
+                default=1,
+            )
+        ],
+        responses={200: AmenitySerializer}
+    )
+    def get(self, request, pk):
+        try:
+            page = request.query_params.get("page", 1)
+            page = int(page)
+        except ValueError:
+            page = 1
+        page_size = 3
+        start = (page - 1) * page_size
+        end = start + page_size
+        room = Room.get_object(pk)
+        serializer = AmenitySerializer(
             room.reviews.all()[start:end],
             many=True,
         )
