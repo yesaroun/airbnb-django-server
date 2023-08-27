@@ -1,21 +1,19 @@
 from django.db import transaction
-
+from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.exceptions import (
     NotFound,
     NotAuthenticated,
     ParseError,
+    PermissionDenied,
 )
 from rest_framework.response import Response
-
 from drf_yasg.utils import swagger_auto_schema
-
 from rooms.serializers import (
     RoomDetailSerializer,
     RoomListSerializer,
 )
 from rooms.models import Amenity, Room
-
 from categories.models import Category
 
 
@@ -65,7 +63,8 @@ class Rooms(APIView):
 
 
 class RoomDetail(APIView):
-    def get_object(self, pk):
+    @staticmethod
+    def get_object(pk):
         try:
             return Room.objects.get(pk=pk)
         except Room.DoesNotExist:
@@ -79,3 +78,39 @@ class RoomDetail(APIView):
         room = self.get_object(pk)
         serializer = RoomDetailSerializer(room)
         return Response(serializer.data)
+
+    @swagger_auto_schema(
+        operation_description="Put a specific room by ID",
+        request_body=RoomDetailSerializer,
+        responses={200: RoomDetailSerializer}
+    )
+    def put(self, request, pk):
+        room = self.get_object(pk)
+        if not request.user.is_authenticated:
+            raise NotAuthenticated
+        if room.owner != request.user:
+            raise PermissionDenied
+        serializer = RoomDetailSerializer(
+            room,
+            data=request.data,
+            partial=True,
+        )
+        if serializer.is_valid():
+            updated_room = serializer.save()
+            return Response(
+                RoomDetailSerializer(updated_room).data,
+            )
+        else:
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+    def delete(self, request, pk):
+        room = self.get_object(pk)
+        if not request.user.is_authenticated:
+            raise NotAuthenticated
+        if room.owner != request.user:
+            raise PermissionDenied
+        room.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

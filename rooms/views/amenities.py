@@ -44,6 +44,7 @@ class Amenities(APIView):
 
 
 class AmenityDetail(APIView):
+    @staticmethod
     def get_object(self, pk):
         try:
             return Amenity.objects.get(pk=pk)
