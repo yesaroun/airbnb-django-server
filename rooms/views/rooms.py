@@ -69,19 +69,13 @@ class Rooms(APIView):
 
 
 class RoomDetail(APIView):
-    @staticmethod
-    def get_object(pk):
-        try:
-            return Room.objects.get(pk=pk)
-        except Room.DoesNotExist:
-            raise NotFound
 
     @swagger_auto_schema(
         operation_description="Get a specific room by ID",
         responses={200: RoomDetailSerializer}
     )
     def get(self, request, pk):
-        room = self.get_object(pk)
+        room = Room.get_object(pk)
         serializer = RoomDetailSerializer(
             room,
             context={"request": request},
@@ -130,11 +124,6 @@ class RoomDetail(APIView):
 
 
 class RoomReviews(APIView):
-    def get_object(self, pk):
-        try:
-            return Room.objects.get(pk=pk)
-        except Room.DoesNotExist:
-            raise NotFound
 
     @swagger_auto_schema(
         operation_description="Room에 해당하는 Reivews Get",
@@ -159,7 +148,7 @@ class RoomReviews(APIView):
         page_size = 3
         start = (page - 1) * page_size
         end = start + page_size
-        room = self.get_object(pk)
+        room = Room.get_object(pk)
         serializer = ReviewSerializer(
             room.reviews.all()[start:end],
             many=True,
