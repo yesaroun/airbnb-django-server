@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "airbnb-clone-backend"
+version = "0.1.0"
+description = ""
+authors = ["yesaroun <akor1@naver.com>"]
+license = "MIT"
+readme = "README.md"
+packages = [{include = "airbnb_clone_backend"}]
+
+[tool.poetry.dependencies]
+python = "^3.11"
+django = "^4.2.2"
+pillow = "^10.0.0"
+djangorestframework = "^3.14.0"
+drf-yasg = "^1.21.7"
+python-decouple = "^3.8"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
