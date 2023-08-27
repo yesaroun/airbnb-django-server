@@ -106,6 +106,10 @@ class RoomDetail(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
+    @swagger_auto_schema(
+        operation_description="Delete a spcific room by ID",
+        responses={204: "No Content"}
+    )
     def delete(self, request, pk):
         room = self.get_object(pk)
         if not request.user.is_authenticated:
