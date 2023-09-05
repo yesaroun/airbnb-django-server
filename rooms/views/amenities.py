@@ -19,7 +19,7 @@ from rooms.models import Amenity
 class Amenities(APIView):
     @swagger_auto_schema(
         operation_description="Get the list of all amenities",
-        responses={200: AmenitySerializer(many=True)}
+        responses={200: AmenitySerializer(many=True)},
     )
     def get(self, request):
         all_amenities = Amenity.objects.all()
@@ -29,7 +29,7 @@ class Amenities(APIView):
     @swagger_auto_schema(
         operation_description="Create a new amenity",
         request_body=AmenitySerializer,
-        responses={201: AmenitySerializer}
+        responses={201: AmenitySerializer},
     )
     def post(self, request):
         serializer = AmenitySerializer(data=request.data)
@@ -53,7 +53,7 @@ class AmenityDetail(APIView):
 
     @swagger_auto_schema(
         operation_description="Get a specific amenity by ID",
-        responses={200: AmenitySerializer}
+        responses={200: AmenitySerializer},
     )
     def get(self, request, pk):
         amenity = self.get_object(pk)
@@ -63,7 +63,7 @@ class AmenityDetail(APIView):
     @swagger_auto_schema(
         operation_description="Update a specific amenity by ID",
         request_body=AmenitySerializer,
-        responses={200: AmenitySerializer}
+        responses={200: AmenitySerializer},
     )
     def put(self, request, pk):
         amenity = self.get_object(pk)
@@ -85,7 +85,7 @@ class AmenityDetail(APIView):
 
     @swagger_auto_schema(
         operation_description="Delete a specific amenity by ID",
-        responses={204: "No Content"}
+        responses={204: "No Content"},
     )
     def delete(self, request, pk):
         amenity = self.get_object(pk)

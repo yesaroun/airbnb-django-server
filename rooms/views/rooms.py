@@ -3,7 +3,6 @@ from django.db import transaction
 from rest_framework import status
 from rest_framework.exceptions import (
     NotFound,
-    NotAuthenticated,
     ParseError,
     PermissionDenied,
 )
@@ -18,6 +17,7 @@ from rooms.serializers import (
     AmenitySerializer,
 )
 from rooms.models import Amenity, Room
+from reviews.schemas import review_request_body
 from reviews.serializers import ReviewSerializer
 from categories.models import Category
 from medias.serializers import PhotoSerializer
@@ -28,7 +28,7 @@ class Rooms(APIView):
 
     @swagger_auto_schema(
         operation_description="Get the list of all rooms",
-        responses={200: RoomListSerializer(many=True)}
+        responses={200: RoomListSerializer(many=True)},
     )
     def get(self, request):
         all_rooms = Room.objects.all()
@@ -42,7 +42,7 @@ class Rooms(APIView):
     @swagger_auto_schema(
         operation_description="Create a new room",
         request_body=RoomDetailSerializer,
-        responses={201: RoomDetailSerializer}
+        responses={201: RoomDetailSerializer},
     )
     def post(self, request):
         serializer = RoomDetailSerializer(data=request.data)
@@ -76,7 +76,7 @@ class RoomDetail(APIView):
 
     @swagger_auto_schema(
         operation_description="Get a specific room by ID",
-        responses={200: RoomDetailSerializer}
+        responses={200: RoomDetailSerializer},
     )
     def get(self, request, pk):
         room = Room.get_object(pk)
@@ -89,7 +89,7 @@ class RoomDetail(APIView):
     @swagger_auto_schema(
         operation_description="Put a specific room by ID",
         request_body=RoomDetailSerializer,
-        responses={200: RoomDetailSerializer}
+        responses={200: RoomDetailSerializer},
     )
     def put(self, request, pk):
         room = self.get_object(pk)
@@ -113,7 +113,7 @@ class RoomDetail(APIView):
 
     @swagger_auto_schema(
         operation_description="Delete a spcific room by ID",
-        responses={204: "No Content"}
+        responses={204: "No Content"},
     )
     def delete(self, request, pk):
         room = self.get_object(pk)
@@ -124,6 +124,7 @@ class RoomDetail(APIView):
 
 
 class RoomReviews(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
 
     @swagger_auto_schema(
         operation_description="Room에 해당하는 Reivews Get",
@@ -137,7 +138,7 @@ class RoomReviews(APIView):
                 default=1,
             )
         ],
-        responses={200: ReviewSerializer}
+        responses={200: ReviewSerializer},
     )
     def get(self, request, pk):
         try:
@@ -155,9 +156,23 @@ class RoomReviews(APIView):
         )
         return Response(serializer.data)
 
+    @swagger_auto_schema(
+        operation_description="Room에 해당하는 Reivew Post",
+        request_body=review_request_body,
+        responses={201: ReviewSerializer},
+    )
+    def post(self, request, pk):
+        serializer = ReviewSerializer(data=request.data)
+        if serializer.is_valid():
+            review = serializer.save(
+                user=request.user,
+                room=Room.get_object(pk),
+            )
+            serializer = ReviewSerializer(review)
+            return Response(serializer.data)
+
 
 class RoomAmenities(APIView):
-
     @swagger_auto_schema(
         operation_description="Room에 해당하는 Amenities Get",
         manual_parameters=[
@@ -170,7 +185,7 @@ class RoomAmenities(APIView):
                 default=1,
             )
         ],
-        responses={200: AmenitySerializer}
+        responses={200: AmenitySerializer},
     )
     def get(self, request, pk):
         try:
