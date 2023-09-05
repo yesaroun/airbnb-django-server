@@ -112,7 +112,7 @@ class RoomDetail(APIView):
             )
 
     @swagger_auto_schema(
-        operation_description="Delete a spcific room by ID",
+        operation_description="Delete a specific room by ID",
         responses={204: "No Content"},
     )
     def delete(self, request, pk):
