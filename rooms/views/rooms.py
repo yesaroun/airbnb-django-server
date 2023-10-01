@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import transaction
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.exceptions import (
     NotFound,
@@ -16,11 +17,13 @@ from rooms.serializers import (
     RoomListSerializer,
     AmenitySerializer,
 )
-from rooms.models import Amenity, Room
-from reviews.schemas import review_request_body
-from reviews.serializers import ReviewSerializer
+from bookings.models import Booking
 from categories.models import Category
+from rooms.models import Amenity, Room
 from medias.serializers import PhotoSerializer
+from reviews.serializers import ReviewSerializer
+from bookings.serializers import PublicBookingSerializer
+from reviews.schemas import review_request_body
 
 
 class Rooms(APIView):
@@ -58,7 +61,8 @@ class Rooms(APIView):
                 raise ParseError("Category not found")
             try:
                 with transaction.atomic():
-                    room = serializer.save(owner=request.user, category=category)
+                    room = serializer.save(
+                        owner=request.user, category=category)
                     amenities = request.data.get("amenities")
                     for amenity_pk in amenities:
                         amenity = Amenity.objects.get(pk=amenity_pk)
@@ -224,3 +228,24 @@ class RoomPhotos(APIView):
             return Response(serializer.data)
         else:
             return Response(serializer.errors)
+
+
+class RoomBookings(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_object(self, pk):
+        try:
+            return Room.get_object(pk=pk)
+        except:
+            raise NotFound
+
+    def get(self, request, pk):
+        room = self.get_object(pk)
+        now = timezone.localtime(timezone.now()).date()
+        bookings = Booking.objects.filter(
+            room=room,
+            kind=Booking.BookingKindChoices.ROOM,
+            check_in__gt=now,
+        )
+        serializer = PublicBookingSerializer(bookings, many=True)
+        return Response(serializer.data)
