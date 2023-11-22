@@ -61,8 +61,7 @@ class Rooms(APIView):
                 raise ParseError("Category not found")
             try:
                 with transaction.atomic():
-                    room = serializer.save(
-                        owner=request.user, category=category)
+                    room = serializer.save(owner=request.user, category=category)
                     amenities = request.data.get("amenities")
                     for amenity_pk in amenities:
                         amenity = Amenity.objects.get(pk=amenity_pk)
@@ -254,6 +253,12 @@ class RoomBookings(APIView):
         room = self.get_object(pk)
         serializer = CreateRoomBookinSerializer(data=request.data)
         if serializer.is_valid():
-            return Response({"ok": True})
+            booking = serializer.save(
+                room=room,
+                user=request.user,
+                kind=Booking.BookingKindChoices.ROOM,
+            )
+            serializer = PublicBookingSerializer(booking)
+            return Response(serializer.data)
         else:
             return Response(serializer.errors)
