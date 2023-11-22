@@ -1,4 +1,5 @@
 from django.db import models
+from rest_framework.exceptions import NotFound
 from common.models import CommonModel
 
 
@@ -34,6 +35,13 @@ class Room(CommonModel):
 
     def __str__(self):
         return self.name
+
+    @staticmethod
+    def get_object(pk):
+        try:
+            return Room.objects.get(pk=pk)
+        except Room.DoesNotExist:
+            raise NotFound
 
     def total_amenities(self):
         return self.amenities.count()
