@@ -4,7 +4,8 @@ from medias.models import Photo, Video
 
 @admin.register(Photo)
 class PhotoAdmin(admin.ModelAdmin):
-    pass
+    list_display = ("id", "room", "description")
+    list_display_links = ("id", "room")
 
 
 @admin.register(Video)
