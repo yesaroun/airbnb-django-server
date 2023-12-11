@@ -287,3 +287,4 @@ fabric.properties
 # End of https://www.toptal.com/developers/gitignore/api/django,pycharm
 
 temp.json
+temp.md
